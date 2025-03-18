@@ -1,4 +1,4 @@
-# project_DDOS_GUARD
+# Project_DDOS_GUARD
 Техническое задание для компании DDOS-GUARD
 Индивидуальное тестовое задание для DevOps-инженера
 
@@ -11,7 +11,7 @@ docker + docker-compose (или плагин docker compose)
 grafana, prometheus - последние стабильные версии
 prometheus-node-exporter, mysqld_exporter - версии, доступные в соответствии с выбранными ОС и ПО
 
-## Описание
+## Описание задания
 Задание предполагает развёртывание решения на двух системах
 1. В первой системе должны быть развёрнуты prometheus-node-exporter, mariadb, mysqld_exporter + фаерволл (nftables). Развёртывание предполагается без использования контейнеризации.
 2. В первой системе должен быть сконфигурирован фаерволл - закрыты все порты, кроме ssh, prometheus-node-exporter, mariadb, mysqld_exporter. Список открытых портов должен задаваться в виде переменных в ansible.
@@ -29,3 +29,48 @@ prometheus-node-exporter, mysqld_exporter - версии, доступные в 
 
 Проект должен быть загружен в git репозиторий (с публичным доступом) в виде ansible проекта, (включающего шаблоны и файлы, используемые в процессе). 
 Также должно присутствовать описание проекта, позволяющее его использовать для развёртывания описанного решения.
+
+# Решение
+## Структура файлов и каталогов решения
+
+	project/
+├── ansible/                # Конфигурационные файлы Ansible
+│   ├── roles/              # Роли Ansible
+│   │   ├── common/         # Общая роль для обеих систем
+│   │   └── systemX/        # Роль для системы X
+│   ├── playbooks/          # Playbook'и для каждой системы
+│   │   ├── deploy_system_X.yml
+│   │   └── deploy_system_Y.yml
+│   └── group_vars/         # Переменные для групп
+│       ├── all.yml         # Общие переменные
+│       └── systemX.yml     # Переменные для System X
+│       └── systemY.yml     # Переменные для System Y
+├── config/                 # Конфигурационные файлы для всех сервисов
+│   ├── prometheus/         # Конфигурация Prometheus
+│   ├── grafana/            # Конфигурация Grafana
+│   ├── mysql/              # Конфигурация MySQL
+├── docker/                 # Docker Compose файл и структуры каталогов
+│   ├── docker-compose.yml
+│   └── volumes/            # Монтированные директории
+│       ├── prometheus/
+│       └── grafana/
+├── dashboards/             # JSON модели dashboard'ов для Grafana
+│   ├── os_metrics.json
+│   └── mysql_metrics.json
+└── README.md               # Описание проекта
+
+## Сценарий работы с решением
+1. Развернуть систему X:
+	```
+	ansible-playbook -i inventory.ini ansible/playbooks/deploy_system_X.yml
+	```
+2. Запустить Docker Compose на системе Y:
+	```
+	cd project/docker
+	docker compose up -d
+	```
+3. Импортировать dashboards в Grafana:
+	Открыть веб-интерфейс Grafana (http://systemY:3000) и войти под учетной записью администратора.
+	Перейти в раздел Dashboards -> Manage, выбрать опцию Import и загрузить подготовленные JSON-файлы.
+	
+Таким образом, вы получите готовое решение для мониторинга вашей инфраструктуры с использованием Prometheus, Grafana и MariaDB.

@@ -1,0 +1,29 @@
+global:
+  scrape_interval: 15s # Интервал сбора метрик
+  evaluation_interval: 15s # Интервал оценки правил alerting и recording rules
+
+scrape_configs:
+  - job_name: 'node-exporter' # Название задания для сбора метрик
+    static_configs:
+      - targets: ['localhost:9100'] # Адрес node-exporter
+        labels:
+          instance: 'local-node' # Метка для идентификации экземпляра
+
+  - job_name: 'prometheus' # Сбор собственных метрик Prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - localhost:9093 # Адрес Alertmanager
+
+rule_files:
+  - /etc/prometheus/rules # Путь к файлам с правилами alerting и recording rules
+
+remote_write:
+  - url: 'http://localhost:9201/write' # Конфигурация удаленной записи метрик (например, в VictoriaMetrics)
+
+remote_read:
+  - url: 'http://localhost:9201/read' # Конфигурация чтения удаленных метрик

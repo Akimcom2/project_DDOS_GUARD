@@ -1,0 +1,64 @@
+- name: Install MariaDB and dependencies
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop:
+    - mariadb-server
+    - mariadb-client
+    - libmariadbclient-dev
+
+- name: Download and install node exporter
+  get_url:
+    url: https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz
+    dest: /tmp/node_exporter.tar.gz
+    checksum: sha256:{{ node_exporter_checksum }}
+  become: true
+
+- name: Extract node exporter to bin directory
+  unarchive:
+    src: /tmp/node_exporter.tar.gz
+    dest: /usr/local/bin
+    remote_src: yes
+    creates: /usr/local/bin/node_exporter
+  become: true
+
+- name: Configure node exporter service
+  template:
+    src: templates/node_exporter.service.j2
+    dest: /lib/systemd/system/node_exporter.service
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart node_exporter
+
+- name: Start and enable node exporter service
+  service:
+    name: node_exporter
+    state: started
+    enabled: yes
+
+- name: Copy MySQL configuration files
+  copy:
+    src: files/mysql.cnf
+    dest: /etc/mysql/my.cnf
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart mysql
+
+- name: Restart MySQL if config changed
+  service:
+    name: mysql
+    state: restarted
+
+- name: Set up firewall rules
+  ufw:
+    rule: allow
+    port: '{{ item }}'
+    proto: tcp
+  loop:
+    - 22
+    - 9100
+    - 3306
+    - 9104

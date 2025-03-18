@@ -1,0 +1,5 @@
+- hosts: systemX
+  gather_facts: true
+  roles:
+    - common
+    - systemX
