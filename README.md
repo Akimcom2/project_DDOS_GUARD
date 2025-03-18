@@ -33,7 +33,8 @@ prometheus-node-exporter, mysqld_exporter - версии, доступные в 
 # Решение
 ## Структура файлов и каталогов решения
 
-```project/
+```
+project/
 ├── ansible/                # Конфигурационные файлы Ansible
 │   ├── roles/              # Роли Ansible
 │   │   ├── common/         # Общая роль для обеих систем
@@ -57,7 +58,8 @@ prometheus-node-exporter, mysqld_exporter - версии, доступные в 
 ├── dashboards/             # JSON модели dashboard'ов для Grafana
 │   ├── os_metrics.json
 │   └── mysql_metrics.json
-└── README.md               # Описание проекта```
+└── README.md               # Описание проекта
+```
 
 ## Сценарий работы с решением
 1. Развернуть систему X:
