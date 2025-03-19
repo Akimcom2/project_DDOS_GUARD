@@ -42,19 +42,12 @@ project/
 │   ├── playbooks/          # Playbook'и для каждой системы
 │   │   ├── deploy_system_X.yml
 │   │   └── deploy_system_Y.yml
-│   └── group_vars/         # Переменные для групп
-│       ├── all.yml         # Общие переменные
-│       └── systemX.yml     # Переменные для System X
-│       └── systemY.yml     # Переменные для System Y
-├── config/                 # Конфигурационные файлы для всех сервисов
-│   ├── prometheus/         # Конфигурация Prometheus
-│   ├── grafana/            # Конфигурация Grafana
-│   ├── mysql/              # Конфигурация MySQL
+|   |___
 ├── docker/                 # Docker Compose файл и структуры каталогов
 │   ├── docker-compose.yml
-│   └── volumes/            # Монтированные директории
-│       ├── prometheus/
-│       └── grafana/
+│   └── volumes/            # Монтированные директории с конфигурациями
+│       ├── prometheus/prometheus.yml
+│       └── grafana/grafana.ini
 ├── dashboards/             # JSON модели dashboard'ов для Grafana
 │   ├── os_metrics.json
 │   └── mysql_metrics.json
@@ -62,9 +55,11 @@ project/
 ```
 ## Проверка структуры
 Проверка была выполнена на виртуальных хостах:
-89.104.66.160 - Docker/Prometheus/Grafana
-89.104.66.136 - Prometheus-node-exporter, mariadb, mysqld_exporter + фаерволл (nftables)
-Проверить хосты можно под учеткой root,пароли As3He1mNUdYmEbjC и nh7NHvts9ir3z2Dy
+#### 89.104.66.160 - Docker/Prometheus/Grafana
+#### 89.104.66.136 - Prometheus-node-exporter, mariadb, mysqld_exporter + фаерволл (nftables)
+Проверить хосты можно под учеткой root,пароли:
+>! As3He1mNUdYmEbjC
+>! nh7NHvts9ir3z2Dy
 Оставляю в открытом виде,хосты будут удалены 22.03.2025
 
 ## Сценарий работы с решением
