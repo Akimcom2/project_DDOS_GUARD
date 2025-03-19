@@ -58,8 +58,9 @@ project/
 #### 89.104.66.160 - Docker/Prometheus/Grafana
 #### 89.104.66.136 - Prometheus-node-exporter, mariadb, mysqld_exporter + фаерволл (nftables)
 Проверить хосты можно под учеткой root,пароли:
->! As3He1mNUdYmEbjC
->! nh7NHvts9ir3z2Dy
+> As3He1mNUdYmEbjC
+и
+> nh7NHvts9ir3z2Dy
 Оставляю в открытом виде,хосты будут удалены 22.03.2025
 
 ## Сценарий работы с решением
