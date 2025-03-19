@@ -1,48 +1,134 @@
-- name: Install base packages
-  apt:
-    name: "{{ item }}"
-    state: present
-    update_cache: yes
-  loop:
-    - curl
-    - git
-    - wget
-    - vim
-    - htop
-    - iptables-persistent
-    - net-tools
-    - lsof
-    - tcpdump
-    - python3-pip
-    - python3-setuptools
+---
+- name: Install Docker on Debian 12
+  hosts: all
+  become: true
+  tasks:
+    # Импортируем публичный ключ Docker
+    - name: Import Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/debian/gpg
+        state: present
 
-- name: Update the system
-  apt:
-    upgrade: dist
-    update_cache: yes
+    # Обновляем список пакетов
+    - name: Update apt cache
+      apt:
+        update_cache: yes
 
-- name: Add Debian Backports repository
-  apt_repository:
-    repo: 'deb http://deb.debian.org/debian buster-backports main'
-    state: present
+    # Добавляем репозиторий Docker
+    - name: Add Docker repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/debian bookworm stable
+        state: present
+        filename: docker.list
 
-- name: Install latest docker-ce from backports
-  apt:
-    name: docker-ce
-    state: present
-    update_cache: yes
+    # Устанавливаем пакеты Docker
+    - name: Install Docker packages
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-compose-plugin
+        state: latest
+        update_cache: yes
 
-- name: Install docker-compose plugin
-  pip:
-    name: docker-compose
-    executable: pip3
+    # Запускаем и активируем сервис Docker
+    - name: Enable and start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
 
-- name: Create required directories
-  file:
-    path: "{{ item }}"
-    state: directory
-    mode: 0755
-  with_items:
-    - /etc/prometheus
-    - /var/lib/grafana
-    - /usr/local/bin
+    # Добавляем текущего пользователя в группу Docker
+    - name: Add current user to Docker group
+      user:
+        name: "{{ ansible_env.USER }}"
+        groups: docker
+        append: yes
+
+    # Создаем директорию для Prometheus и Grafana
+    - name: Create directories for Prometheus and Grafana
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: 472
+        group: 472
+        mode: '0775'
+      loop:
+        - ./volumes/prometheus
+        - ./volumes/grafana
+        - ./volumes/grafana/provisioning
+
+    # Копируем файл конфигурации Prometheus
+    - name: Copy minimal Prometheus configuration file
+      copy:
+        content: |
+          global:
+            scrape_interval: 15s
+            evaluation_interval: 15s
+          scrape_configs:
+            - job_name: 'prometheus'
+              static_configs:
+                - targets: ['localhost:9090']
+        dest: ./volumes/prometheus/prometheus.yml
+        owner: 472
+        group: 472
+        mode: '0644'
+
+    # Создаем файл docker-compose.yml
+    - name: Create docker-compose.yml file
+      copy:
+        content: |
+          version: '3'
+          services:
+            prometheus:
+              image: prom/prometheus:latest
+              volumes:
+                - type: bind
+                  source: ./volumes/prometheus
+                  target: /etc/prometheus/
+                  read_only: false
+              container_name: prometheus
+              hostname: prometheus
+              command:
+                - --config.file=/etc/prometheus/prometheus.yml
+              ports:
+                - 9090:9090
+              restart: unless-stopped
+              environment:
+                TZ: "Europe/Moscow"
+              networks:
+                - default
+            grafana:
+              image: grafana/grafana
+              user: root
+              depends_on:
+                - prometheus
+              ports:
+                - 3000:3000
+              volumes:
+                - type: bind
+                  source: ./volumes/grafana
+                  target: /var/lib/grafana
+                  read_only: false
+                - type: bind
+                  source: ./volumes/grafana/provisioning/
+                  target: /etc/grafana/provisioning/
+                  read_only: false
+              container_name: grafana
+              hostname: grafana
+              restart: unless-stopped
+              environment:
+                TZ: "Europe/Moscow"
+              networks:
+                - default
+        dest: ./docker-compose.yml
+        owner: 472
+        group: 472
+        mode: '0644'
+
+    # Запускаем контейнеры с помощью docker-compose
+    - name: Start containers using docker-compose
+      command: docker compose up -d
+      args:
+        chdir: ./
