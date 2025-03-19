@@ -66,10 +66,9 @@ project/
 	```
 	ansible-playbook -i inventory.ini playbooks/deploy_system_X.yml
 	```
-2. Запустить Docker Compose на системе Y:
+2. Развернуть систему Y:
 	```
-	cd project/docker
-	docker compose up -d
+	ansible-playbook -i inventory.ini playbooks/deploy_system_Y.yml
 	```
 3. Импортировать dashboards в Grafana:
 	Открыть веб-интерфейс Grafana (http://systemY:3000) и войти под учетной записью администратора.
