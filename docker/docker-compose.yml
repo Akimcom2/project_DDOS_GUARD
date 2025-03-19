@@ -4,7 +4,7 @@ services:
     image: prom/prometheus:latest
     volumes:
       - type: bind
-        source: ./prometheus
+        source: ./volumes/prometheus
         target: /etc/prometheus/
         read_only: false
     container_name: prometheus
@@ -28,11 +28,11 @@ services:
       - 3000:3000
     volumes:
       - type: bind
-        source: ./grafana
+        source: ./volumes/grafana
         target: /var/lib/grafana
         read_only: false
       - type: bind
-        source: ./grafana/provisioning/
+        source: ./volumes/grafana/provisioning/
         target: /etc/grafana/provisioning/
         read_only: false
     container_name: grafana
