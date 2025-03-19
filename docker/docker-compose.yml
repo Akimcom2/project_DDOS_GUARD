@@ -6,7 +6,7 @@ services:
       - type: bind
         source: ./prometheus
         target: /etc/prometheus/
-        read_only: true
+        read_only: false
     container_name: prometheus
     hostname: prometheus
     command:
@@ -30,11 +30,11 @@ services:
       - type: bind
         source: ./grafana
         target: /var/lib/grafana
-        read_only: true
+        read_only: false
       - type: bind
         source: ./grafana/provisioning/
         target: /etc/grafana/provisioning/
-        read_only: true
+        read_only: false
     container_name: grafana
     hostname: grafana
     restart: unless-stopped
