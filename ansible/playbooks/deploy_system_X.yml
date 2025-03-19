@@ -52,7 +52,7 @@
         name: mariadb-server
         state: present
         update_cache: yes
-        
+
     - name: Install NFTABLES package
       apt:
         name: nftables
