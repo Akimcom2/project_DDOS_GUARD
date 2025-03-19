@@ -72,18 +72,47 @@ prometheus-node-exporter, mysqld_exporter - версии, доступные в 
 
 ## Сценарий работы с решением
 
-Что нужно изменить:
-1. ansible/hosts.ini измените IP-адреса машин в соответствии со своими
+1. Обновление целевых хостов (Ansible)
+Файл: ansible/hosts.ini
+Замените существующие IP-адреса на актуальные значения для ваших серверов.
+2. Настройка сбора метрик (Prometheus)
+Файл: docker/prometheus/prometheus.yml
+Обновите IP-адреса в секциях targets для следующих job:
 
-2. docker/prometheus/prometheus.yml измените IP-адреса для эскпортеров (job для grafana можно не менять, если вы не меняли имя контейнера в docker/docker-compose.yaml)
+node_exporter (метрики серверов)
 
-3. scripts/create_user.sh измените MYSQL_ROOT_PASSWORD и MYSQL_EXPORTER_PASSWORD в соответствии со своими данными
+mysqld_exporter (метрики MySQL/MariaDB)
+3. Настройка учетных данных MySQL
+Скрипт: scripts/create_user.sh
+Замените значения переменных:
+export MYSQL_ROOT_PASSWORD="ваш_пароль_root"          # Пароль администратора БД
+export MYSQL_EXPORTER_PASSWORD="ваш_пароль_экспортера" # Пароль для сбора метрик
 
-4. configs/.my.cnf измените user и password в соответствии со своими данными
+Конфиг: configs/.my.cnf
+Приведите в соответствие параметры доступа:
+[client]
+user = exporter
+password = ваш_пароль_экспортера
+4. Параметры подключения Ansible
+Файлы:
+ansible/Docker_VM/ansible.sh
+ansible/Ansible_VM/ansible.sh
+Обновите авторизационные данные:
+### Пример строки для подключения:
+ansible-playbook ... -e "ansible_user=ваш_пользователь ansible_password=ваш_пароль ansible_become_method=ваш_метод_повышения_прав"
+Где:
 
-5. ansible/Docker_VM/ansible.sh и ansible/Ansible_VM/ansible.sh измените строки "ansible_user=user ansible_password=pass ansible_become_method=su/sudo ansible_become_user=root ansible_become_password=pass" в соответствии со своими данными
+ansible_user — пользователь для SSH-подключения
 
-Сценарий развертки:
+ansible_password — пароль пользователя
+
+Рекомендации:
+
+Для Grafana оставьте конфигурацию без изменений, если имя контейнера в docker-compose.yaml не менялось.
+
+Проверьте доступность портов (9100, 9104, 9090) в firewall после развертывания.
+
+## Сценарий развертки:
 1. Развернуть систему Docker:
 	```
 	- cd ansible/Docker_VM/
