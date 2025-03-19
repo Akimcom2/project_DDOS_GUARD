@@ -1,7 +1,7 @@
 ---
-- name: Install Docker on Debian 12
-  hosts: all
-  become: true
+- hosts: second 
+  gather_facts: True
+  become: True
   tasks:
     # Импортируем публичный ключ Docker
     - name: Import Docker GPG key
@@ -132,3 +132,4 @@
       command: docker compose up -d
       args:
         chdir: ./
+

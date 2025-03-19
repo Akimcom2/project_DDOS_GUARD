@@ -1,0 +1,81 @@
+---
+- hosts: first
+  gather_facts: True
+  become: True
+  vars:
+    open_ports:
+      - 22 # SSH
+      - 9100 # Prometheus Node Exporter
+      - 3306 # MariaDB
+      - 9104 # mysqld_exporter
+    
+  tasks:
+    # For root $PATH
+    - name: Added PATH in .bashrc
+      ansible.builtin.lineinfile:
+        path: /root/.bashrc
+        line: export PATH="/usr/local/sbin:/usr/sbin:/sbin:${PATH}"
+
+    - name: Source .bashrc
+      shell: /bin/dash /root/.bashrc
+
+    # Install packages
+    - name: Install packages
+      apt:
+        name:
+          - mariadb-server
+          - nftables
+          - prometheus-mysqld-exporter
+          - prometheus-node-exporter
+        state: present
+
+    # Configure nftables
+    - name: Remove default nftables.conf
+      file:
+        path: /etc/nftables.conf
+        state: absent
+
+    - name: Copy nftables.conf
+      copy:
+        src: ../../configs/nftables.conf
+        dest: /etc/nftables.conf
+   
+    # Configure mariadb
+    - name: Copy bash script for mariadb
+      copy:
+        src: ../../scripts/create_user.sh
+        dest: /opt/
+        mode: 755
+
+    - name: Execute script
+      shell: bash /opt/create_user.sh
+
+    # Configure exporters
+    - name: Copy .my.cnf
+      copy:
+        src: ../../configs/.my.cnf
+        dest: /var/lib/prometheus/
+
+    - name: Start and enable node-exporter
+      systemd:
+        name: prometheus-node-exporter
+        state: restarted
+        enabled: True
+      ignore_errors: True
+
+    - name: Start and enable mysqld-exporter
+      systemd:
+        name: prometheus-mysqld-exporter
+        state: restarted
+        enabled: True
+      ignore_errors: True
+    
+    # Enable rules nftables
+    - name: Flush ruleset
+      shell: /usr/sbin/nft flush ruleset && /usr/sbin/nft -f /etc/nftables.conf
+
+    - name: Ensure nftables is enabled and started
+      systemd:
+        name: nftables
+        enabled: True
+        state: started

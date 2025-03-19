@@ -1,12 +1,10 @@
-version: '3'
+version: '3.9'
+
 services:
   prometheus:
     image: prom/prometheus:latest
     volumes:
-      - type: bind
-        source: ./volumes/prometheus
-        target: /etc/prometheus/
-        read_only: false
+      - ./prometheus:/etc/prometheus/:ro
     container_name: prometheus
     hostname: prometheus
     command:
@@ -27,14 +25,8 @@ services:
     ports:
       - 3000:3000
     volumes:
-      - type: bind
-        source: ./volumes/grafana
-        target: /var/lib/grafana
-        read_only: false
-      - type: bind
-        source: ./volumes/grafana/provisioning/
-        target: /etc/grafana/provisioning/
-        read_only: false
+      - ./grafana:/var/lib/grafana
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
     container_name: grafana
     hostname: grafana
     restart: unless-stopped
@@ -42,3 +34,4 @@ services:
       TZ: "Europe/Moscow"
     networks:
       - default
+

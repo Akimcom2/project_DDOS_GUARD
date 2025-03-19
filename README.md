@@ -34,46 +34,69 @@ prometheus-node-exporter, mysqld_exporter - версии, доступные в 
 ## Структура файлов и каталогов решения
 
 ```
-project/
-├── ansible/                # Конфигурационные файлы Ansible
-│   ├── roles/              # Роли Ansible
-│   │   ├── common/         # Общая роль для обеих систем
-│   │   └── systemX/        # Роль для системы X
-│   ├── playbooks/          # Playbook'и для каждой системы
-│   │   ├── deploy_system_X.yml
-│   │   └── deploy_system_Y.yml
-|   |___
-├── docker/                 # Docker Compose файл и структуры каталогов
-│   ├── docker-compose.yml
-│   └── volumes/            # Монтированные директории с конфигурациями
-│       ├── prometheus/prometheus.yml
-│       └── grafana/grafana.ini
-├── dashboards/             # JSON модели dashboard'ов для Grafana
-│   ├── os_metrics.json
-│   └── mysql_metrics.json
-└── README.md               # Описание проекта
-```
+└── project_DDOS_GUARD
+    ├── ansible
+    │   ├── Ansible_VM
+    │   │   ├── ansible.cfg
+    │   │   ├── ansible.sh
+    │   │   └── playbook.yml
+    │   ├── Docker_VM
+    │   │   ├── ansible.cfg
+    │   │   ├── ansible.sh
+    │   │   └── playbook.yml
+    │   └── hosts.ini
+    ├── configs
+    │   ├── .my.cnf
+    │   ├── mysql_metrics.json
+    │   ├── nftables.conf
+    │   └── os_metrics.json
+    ├── docker
+    │   ├── docker-compose.yaml
+    │   ├── grafana
+    │   │   └── .my.cnf
+    │   └── prometheus
+    │       └── prometheus.yml
+        ├── pkgs
+    │   ├── mariadb-server-10.5_1%3a10.11.6-0+deb12u1_amd64.deb
+    │   ├── nftables_1.0.6-2+deb12u2_amd64.deb
+    │   ├── prometheus-mysqld-exporter_0.14.0-3+b5_amd64.deb
+    │   └── prometheus-node-exporter_1.5.0-1+b6_amd64.deb
+    |── scripts
+    |    └── create_user.sh
+    ├── README.md
+        ```
 ## Проверка структуры
 Проверка была выполнена на виртуальных хостах:
 #### 89.104.66.160 - Docker/Prometheus/Grafana
 #### 89.104.66.136 - Prometheus-node-exporter, mariadb, mysqld_exporter + фаерволл (nftables)
-Проверить хосты можно под учеткой root,пароли:
-> As3He1mNUdYmEbjC
-и
-> nh7NHvts9ir3z2Dy
-Оставляю в открытом виде,хосты будут удалены 22.03.2025
 
 ## Сценарий работы с решением
-1. Развернуть систему X:
+
+Что нужно изменить:
+1. ansible/hosts.ini измените IP-адреса машин в соответствии со своими
+
+2. docker/prometheus/prometheus.yml измените IP-адреса для эскпортеров (job для grafana можно не менять, если вы не меняли имя контейнера в docker/docker-compose.yaml)
+
+3. scripts/create_user.sh измените MYSQL_ROOT_PASSWORD и MYSQL_EXPORTER_PASSWORD в соответствии со своими данными
+
+4. configs/.my.cnf измените user и password в соответствии со своими данными
+
+5. ansible/Docker_VM/ansible.sh и ansible/Ansible_VM/ansible.sh измените строки "ansible_user=user ansible_password=pass ansible_become_method=su/sudo ansible_become_user=root ansible_become_password=pass" в соответствии со своими данными
+
+Сценарий развертки:
+1. Развернуть систему Docker:
 	```
-	ansible-playbook -i inventory.ini playbooks/deploy_system_X.yml
+	- cd ansible/Docker_VM/
+	- ./ansible.sh 
 	```
-2. Развернуть систему Y:
+2. Развернуть систему Ansible:
 	```
-	ansible-playbook -i inventory.ini playbooks/deploy_system_Y.yml
+	- cd ansible/Ansible_VM/
+	- ./ansible.sh 
 	```
 3. Импортировать dashboards в Grafana:
-	Открыть веб-интерфейс Grafana (http://systemY:3000) и войти под учетной записью администратора.
+	Открыть веб-интерфейс Grafana и войти под учетной записью администратора.
 	Перейти в раздел Dashboards -> Manage, выбрать опцию Import и загрузить подготовленные JSON-файлы.
 	
 Таким образом, вы получите готовое решение для мониторинга вашей инфраструктуры с использованием Prometheus, Grafana и MariaDB.
+
