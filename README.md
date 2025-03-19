@@ -64,7 +64,7 @@ project/
 ## Сценарий работы с решением
 1. Развернуть систему X:
 	```
-	ansible-playbook -i inventory.ini ansible/playbooks/deploy_system_X.yml
+	ansible-playbook -i inventory.ini playbooks/deploy_system_X.yml
 	```
 2. Запустить Docker Compose на системе Y:
 	```

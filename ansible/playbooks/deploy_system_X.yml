@@ -52,61 +52,7 @@
         name: mariadb-server
         state: present
         update_cache: yes
-
-    - name: Secure MariaDB installation
-      shell: |
-        mysql -u root -p$(cat /etc/mysql/debian.cnf | grep password | cut -d'=' -f2) -e "UPDATE mysql.user SET Password=PASSWORD('{{ mariadb_root_password }}') WHERE User='root'; FLUSH PRIVILEGES;"
-      args:
-        executable: /bin/bash
-
-    - name: Add MySQL Exporter user
-      mysql_user:
-        name: exporter
-        password: supersecret
-        priv: '*.*:PROCESS,REPLICATION CLIENT'
-        state: present
-
-    - name: Download MySQL Exporter binary
-      get_url:
-        url: https://github.com/prometheus/mysqld_exporter/releases/download/v0.14.0/mysqld_exporter-0.14.0.linux-amd64.tar.gz
-        dest: /tmp/mysqld_exporter.tar.gz
-        mode: 0644
-
-    - name: Extract MySQL Exporter archive
-      unarchive:
-        src: /tmp/mysqld_exporter.tar.gz
-        dest: /opt/
-        remote_src: yes
-
-    - name: Copy MySQL Exporter binary to bin folder
-      copy:
-        src: /opt/mysqld_exporter-0.14.0.linux-amd64/mysqld_exporter
-        dest: /usr/local/bin/mysqld_exporter
-        mode: 0755
-
-    - name: Create MySQL Exporter configuration file
-      template:
-        src: templates/mysqld_exporter.cnf.j2
-        dest: /etc/mysqld_exporter.cnf
-        owner: root
-        group: root
-        mode: 0600
-
-    - name: Create SystemD service file for MySQL Exporter
-      template:
-        src: templates/mysqld_exporter.service.j2
-        dest: /etc/systemd/system/mysqld_exporter.service
-        owner: root
-        group: root
-        mode: 0644
-
-    - name: Start and enable MySQL Exporter service
-      systemd:
-        name: mysqld_exporter
-        enabled: yes
-        state: started
-        daemon_reload: yes
-
+        
     - name: Install NFTABLES package
       apt:
         name: nftables
