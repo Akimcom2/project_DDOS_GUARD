@@ -64,53 +64,51 @@ prometheus-node-exporter, mysqld_exporter - версии, доступные в 
     |── scripts
     |    └── create_user.sh
     ├── README.md
-        ```
-## Проверка структуры
-Проверка была выполнена на виртуальных хостах:
-#### 89.104.66.160 - Docker/Prometheus/Grafana
-#### 89.104.66.136 - Prometheus-node-exporter, mariadb, mysqld_exporter + фаерволл (nftables)
+```
 
 ## Сценарий работы с решением
 
-1. Обновление целевых хостов (Ansible)
-Файл: ansible/hosts.ini
-Замените существующие IP-адреса на актуальные значения для ваших серверов.
-2. Настройка сбора метрик (Prometheus)
-Файл: docker/prometheus/prometheus.yml
-Обновите IP-адреса в секциях targets для следующих job:
+1. Обновление целевых хостов (Ansible)\
+	Файл: ansible/hosts.ini \
+	Замените существующие IP-адреса на актуальные значения для ваших серверов.
 
-node_exporter (метрики серверов)
+2. Настройка сбора метрик (Prometheus)\
+	Файл: docker/prometheus/prometheus.yml\
+		Обновите IP-адреса в секциях targets для следующих job:
+* node_exporter (метрики серверов)
+* mysqld_exporter (метрики MySQL/MariaDB)
 
-mysqld_exporter (метрики MySQL/MariaDB)
-3. Настройка учетных данных MySQL
-Скрипт: scripts/create_user.sh
+3. Настройка учетных данных MySQL\
+* Скрипт: scripts/create_user.sh\
 Замените значения переменных:
+```
 export MYSQL_ROOT_PASSWORD="ваш_пароль_root"          # Пароль администратора БД
 export MYSQL_EXPORTER_PASSWORD="ваш_пароль_экспортера" # Пароль для сбора метрик
+```
 
-Конфиг: configs/.my.cnf
+* Конфиг: configs/.my.cnf \
 Приведите в соответствие параметры доступа:
+```
 [client]
 user = exporter
 password = ваш_пароль_экспортера
-4. Параметры подключения Ansible
-Файлы:
-ansible/Docker_VM/ansible.sh
-ansible/Ansible_VM/ansible.sh
+```
+4. Параметры подключения Ansible\
+В файлах:
+* ansible/Docker_VM/ansible.sh
+* ansible/Ansible_VM/ansible.sh \
 Обновите авторизационные данные:
-### Пример строки для подключения:
-ansible-playbook ... -e "ansible_user=ваш_пользователь ansible_password=ваш_пароль ansible_become_method=ваш_метод_повышения_прав"
-Где:
+ansible-playbook ... -e "ansible_user=ваш_пользователь ansible_password=ваш_пароль ansible_become_method=ваш_метод_повышения_прав" \
+Переменные в строке для подключения: 
+* ansible_user — пользователь для SSH-подключения 
+* ansible_password — пароль пользователя 
+* ansible_become_method — метод получения root-прав (sudo/su)
 
-ansible_user — пользователь для SSH-подключения
+Рекомендации: 
 
-ansible_password — пароль пользователя
+Для Grafana оставьте конфигурацию без изменений, если имя контейнера в docker-compose.yaml не менялось. 
 
-Рекомендации:
-
-Для Grafana оставьте конфигурацию без изменений, если имя контейнера в docker-compose.yaml не менялось.
-
-Проверьте доступность портов (9100, 9104, 9090) в firewall после развертывания.
+Проверьте доступность портов (9100, 9104, 9090) в firewall после развертывания. 
 
 ## Сценарий развертки:
 1. Развернуть систему Docker:
